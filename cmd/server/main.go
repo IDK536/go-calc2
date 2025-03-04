@@ -21,8 +21,8 @@ func main() {
 	r.Post("/api/v1/calculate", orchestrator.HandleCalculate)
 	r.Get("/api/v1/expressions", orchestrator.HandleGetExpressions)
 	r.Get("/api/v1/expressions/{id}", orchestrator.HandleGetExpression)
-	r.Get("/api/v1/task", orchestrator.HandleGetTask)
-	r.Post("/api/v1/task/result", orchestrator.HandlePostTaskResult)
+	r.Get("/task", orchestrator.HandleGetTask)
+	r.Post("/task/result", orchestrator.HandlePostTaskResult)
 
 	log.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", r)
