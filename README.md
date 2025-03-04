@@ -19,7 +19,7 @@ git clone https://github.com/IDK536/go-calc2.git
 Для запуска проекта выполните следующую команду:
 
 ```
-go run cmd/server/main.go
+go run ./cmd/server/main.go
 ```
 
 ## Эндпоинты
