@@ -30,7 +30,7 @@ go run cmd/server/main.go
 curl --location 'localhost/api/v1/calculate' \
 --header 'Content-Type: application/json' \
 --data '{
-  "expression": "<арифметическое выражение>"
+  "expression": "2+2"
 }'
 ```
 
