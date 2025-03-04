@@ -33,11 +33,29 @@ curl --location 'localhost/api/v1/calculate' \
   "expression": "2+2"
 }'
 ```
+Пример ответа:
+```
+{
+    "id": <уникальный идентификатор выражения>
+}
+```
 
 ### Получение списка выражений:
 
 ```
 curl --location 'localhost/api/v1/expressions'
+```
+Пример ответа:
+```
+{
+  "expressions": [{
+    "ID": "d7dff3ad-b668-48e5-81b0-3ec8506410ec",
+    "Status": "completed",
+    "Result": 12
+    ,"TaskIDs": [3, 4, 5, 6, 7],
+    "DepMap": {"1": [2]}
+  }]
+}
 ```
 
 ### Получение выражения по ID:
