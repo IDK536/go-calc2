@@ -39,7 +39,7 @@ func AgentWorker(computingPower int) {
 }
 
 func fetchTask() *Task {
-	resp, err := http.Get("http://localhost:8080/api/v1/task")
+	resp, err := http.Get("http://localhost:8080/task")
 	// fmt.Println("go run 1101", "Failed to fetch task")
 	if err != nil {
 		log.Println("Failed to fetch task:", err)
@@ -90,7 +90,7 @@ func sendResult(taskID int, result float64) {
 	}
 
 	jsonData, _ := json.Marshal(data)
-	resp, err := http.Post("http://localhost:8080/api/v1/task/result", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://localhost:8080/task/result", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Println("Failed to send result:", err)
 		return
