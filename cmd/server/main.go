@@ -20,7 +20,7 @@ func main() {
 
 	r.Post("/api/v1/calculate", orchestrator.HandleCalculate)
 	r.Get("/api/v1/expressions", orchestrator.HandleGetExpressions)
-	r.Get("/api/v1/expressions/{id}", orchestrator.HandleGetExpression)
+	r.Get("/api/v1/expression/{id}", orchestrator.HandleGetExpression)
 	r.Get("/task", orchestrator.HandleGetTask)
 	r.Post("/task/result", orchestrator.HandlePostTaskResult)
 

@@ -11,7 +11,7 @@ import (
 func Run() {
 	cp := os.Getenv("COMPUTING_POWER")
 	if cp == "" {
-		cp = "2"
+		cp = "1"
 	}
 	computingPower, err := strconv.Atoi(cp)
 	if err != nil {

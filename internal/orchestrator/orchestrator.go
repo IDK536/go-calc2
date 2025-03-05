@@ -50,6 +50,7 @@ var (
 	glavIndex   []int
 	glavResult  []string
 	// done        = make(chan struct{})
+	inx = 0
 )
 
 func getOperationDuration(op string) time.Duration {
@@ -79,7 +80,10 @@ func getEnvInt(key string, defaultValue int) int {
 func HandleCalculate(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received expression: %s", r.Body)
 	// fmt.Println("go run")
-
+	thisnode = Node{}
+	IsResult = false
+	glavIndex = []int{}
+	glavResult = []string{}
 	var req struct {
 		Expression string `json:"expression"`
 	}
@@ -108,7 +112,7 @@ func HandleCalculate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// fmt.Println("go run3", values, ops)
-		var fulltasks []Task
+		// var fulltasks []Task
 		fulldepmap := make(map[int][]int)
 		for i, n := range values {
 			// fmt.Println("go run4")
@@ -125,21 +129,24 @@ func HandleCalculate(w http.ResponseWriter, r *http.Request) {
 						Operators: ops1,
 					}
 
-					tasksList1, depMap1, err := createTasksFromAST(fulldepmap, fulltasks)
+					tasksList1, depMap1, err := createTasksFromAST(fulldepmap)
 					fulldepmap = depMap1
-					fulltasks = tasksList1
-					for _, t := range fulltasks {
-						tasks[len(tasks)] = t
+					// tasks = append(tasks, tasksList1...)
+					for _, n := range tasksList1 {
+						tasks[len(tasks)] = n
 					}
-					// <-done // Ожидание сигнала о завершении обработки запроса
+					// for _, t := range fulltasks {
+					// 	tasks[len(tasks)] = t
+					// }
 					for !IsResult {
 						time.Sleep(time.Second)
 					}
-					for _, n := range tasks {
-						n.Status = "completed"
-					}
+					// for _, n := range tasks {
+					// 	n.Status = "completed"
+					// }
 					IsResult = false
 					// fmt.Println("gosssssss run5")
+					inx = 0
 				}
 				glavIndex = append(glavIndex, i)
 				// fmt.Println("fdhbrthrtherhhrregerg", thisnode.Valuse, tasks, thisnode)
@@ -150,41 +157,48 @@ func HandleCalculate(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println("ababbababab", glavIndex)
 		// fmt.Println("rtrtrtrtrtr", glavIndex)
 
-		// fmt.Println(fulltasks)
-		// fmt.Println(thisnode)
+		fmt.Println("grgerg", tasks)
+		fmt.Println(thisnode)
 		thisnode = Node{}
 		proshI := 0
-		for i, n := range glavIndex {
-			// fmt.Println(values, glavResult, n)
-			don := append(values[proshI:n], glavResult[i])
-			thisnode.Valuse = append(thisnode.Valuse, don...)
-			proshI = n + 1
+		if len(glavIndex) != 0 {
+			for i, n := range glavIndex {
+				// fmt.Println(values, glavResult, n)
+				don := append(values[proshI:n], glavResult[i])
+				thisnode.Valuse = append(thisnode.Valuse, don...)
+				proshI = n + 1
+			}
+		} else {
+			thisnode.Valuse = values
 		}
 		// fmt.Println("dghrdhrdhhrherreherherherh", thisnode)
 		thisnode = Node{
 			Valuse:    thisnode.Valuse,
 			Operators: ops,
 		}
-		// fmt.Println("gergergergergergergergejnswtertgewrger", thisnode)
+		inx = 0
+		fmt.Println("aaarseniy", thisnode)
+		fmt.Println("gergergergergergergergejnswtertgewrger", thisnode)
 		for len(thisnode.Valuse) != 1 {
-			tasksList, depMap, err := createTasksFromAST(fulldepmap, fulltasks)
+			tasksList, depMap, err := createTasksFromAST(fulldepmap)
+			inx = 0
 			if err != nil {
 				log.Printf("Error building AST: %v", err)
 				http.Error(w, "Invalid expression", http.StatusUnprocessableEntity)
 				return
 			}
 			fulldepmap = depMap
-			fulltasks = tasksList
-			for _, t := range fulltasks {
-				tasks[len(tasks)] = t
+			for _, n := range tasksList {
+				tasks[len(tasks)] = n
 			}
 			for !IsResult {
 				time.Sleep(time.Second)
 			}
-			for _, n := range tasks {
-				n.Status = "completed"
-			}
+			// for _, n := range tasks {
+			// 	n.Status = "completed"
+			// }
 			IsResult = false
+			fmt.Println("arseniy", tasks)
 			// fmt.Println("gosssssss run5")
 		}
 		// fmt.Println("res", thisnode.Valuse)
@@ -197,34 +211,39 @@ func HandleCalculate(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid expression", http.StatusUnprocessableEntity)
 			return
 		}
-
-		for _, task := range tasks {
+		taskID := 0
+		for range tasks {
 			taskID++
-			tasks[taskID] = task
+			// tasks[taskID] = task
 			expr.TaskIDs = append(expr.TaskIDs, taskID)
 		}
-
+		fmt.Println("huihuihuihui", tasks, expr.TaskIDs)
 		expr.DepMap = fulldepmap
 		expr.Status = "completed"
 		expressions[id] = expr
+		fmt.Println("huihuihuihui1", expr)
 	}()
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"id": id})
 }
 
-func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][]int, error) {
+func createTasksFromAST(depmap1 map[int][]int) ([]Task, map[int][]int, error) {
 	var tasks []Task
 	values := thisnode.Valuse
 	ops := thisnode.Operators
+	fmt.Println("ars", values, ops)
 	depMap := make(map[int][]int)
 	dm := make(map[int][]int)
+	inx := -1
 	// fmt.Println("11111111go run 5", values, ops)
 	for i, op := range ops {
 		// fmt.Println("go run 8")
 		// fmt.Println("go run 9")
+		inx++
 		if i != 0 && i != len(ops)-1 && len(ops) != 1 {
 			if op == "+" || op == "-" {
-				if ops[i-1] != "*" || ops[i+1] != "/" || ops[i+1] != "*" || ops[i-1] != "/" {
+				if ops[i-1] != "*" && ops[i+1] != "/" && ops[i+1] != "*" && ops[i-1] != "/" {
+					fmt.Println("go run 10", values, ops, op, values[i])
 					value1, err := strconv.ParseFloat(values[i], 64)
 					value2, err := strconv.ParseFloat(values[i+1], 64)
 					if err != nil {
@@ -243,9 +262,10 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 					taskID++
 					dm[len(depMap)] = append(dm[len(depMap)], taskID)
 					tasks = append(tasks, task)
+					i++
 				}
 			} else if op == "*" || op == "/" {
-				if ops[i-1] != "/" || ops[i-1] != "*" {
+				if ops[i-1] != "/" && ops[i-1] != "*" {
 					value1, err := strconv.ParseFloat(values[i], 64)
 					value2, err := strconv.ParseFloat(values[i+1], 64)
 					if err != nil {
@@ -264,6 +284,7 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 					taskID++
 					dm[len(depMap)] = append(dm[len(depMap)], taskID)
 					tasks = append(tasks, task)
+					i++
 				}
 			}
 		} else if len(ops) == 1 {
@@ -291,10 +312,12 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 			taskID++
 			dm[len(depMap)] = append(dm[len(depMap)], taskID)
 			tasks = append(tasks, task)
+			i++
 			// fmt.Println("go run 10")
 		} else if i == 0 {
 			if op == "+" || op == "-" {
-				if ops[i+1] != "/" || ops[i+1] != "*" {
+				if ops[i+1] != "/" && ops[i+1] != "*" {
+					fmt.Println("eshkere", values[i])
 					value1, err := strconv.ParseFloat(values[i], 64)
 					value2, err := strconv.ParseFloat(values[i+1], 64)
 					if err != nil {
@@ -313,6 +336,7 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 					taskID++
 					dm[len(depMap)] = append(dm[len(depMap)], taskID)
 					tasks = append(tasks, task)
+					i++
 				}
 			} else if op == "*" || op == "/" {
 				value1, err := strconv.ParseFloat(values[i], 64)
@@ -333,10 +357,12 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 				taskID++
 				dm[len(depMap)] = append(dm[len(depMap)], taskID)
 				tasks = append(tasks, task)
+				i++
 			}
-		} else if i == len(ops)-1 {
+		} else if i == len(ops) {
 			if op == "+" || op == "-" {
-				if ops[i-1] != "*" || ops[i-1] != "/" {
+				if ops[i-1] != "*" && ops[i-1] != "/" {
+					fmt.Println("eshkere1", values)
 					value1, err := strconv.ParseFloat(values[i], 64)
 					value2, err := strconv.ParseFloat(values[i+1], 64)
 					if err != nil {
@@ -355,9 +381,10 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 					taskID++
 					dm[len(depMap)] = append(dm[len(depMap)], taskID)
 					tasks = append(tasks, task)
+					i++
 				}
 			} else if op == "*" || op == "/" {
-				if ops[i-1] != "/" || ops[i-1] != "*" {
+				if ops[i-1] != "/" && ops[i-1] != "*" {
 					value1, err := strconv.ParseFloat(values[i], 64)
 					value2, err := strconv.ParseFloat(values[i+1], 64)
 					if err != nil {
@@ -376,11 +403,12 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 					taskID++
 					dm[len(depMap)] = append(dm[len(depMap)], taskID)
 					tasks = append(tasks, task)
+					i++
 				}
 			}
 		}
 	}
-	// fmt.Println("go run 6ftghtfghfghbfgbijkfijoijkfgbkoldfgvkiodfgviklofbgkoifbgklgbfklgblkgbfklgbfklgklfbklgbklgbh", tasks)
+	fmt.Println("go run 6ftghtfghfghbfgbijkfijoijkfgbkoldfgvkiodfgviklofbgkoifbgklgbfklgblkgbfklgbfklgklfbklgbklgbh", tasks)
 	// var createTask func(node *parser.Node) (interface{}, error)
 	// createTask = func(node *parser.Node) (interface{}, error) {
 	// 	if node == nil {
@@ -441,9 +469,9 @@ func createTasksFromAST(depmap1 map[int][]int, tasks1 []Task) ([]Task, map[int][
 			}
 		}
 	}
-	if len(tasks1) != 0 {
-		tasks = append(tasks1, tasks...)
-	}
+	// if len(tasks1) != 0 {
+	// 	tasks = append(tasks1, tasks...)
+	// }
 	// fmt.Println("tasks", tasks)
 	return tasks, depMap, nil
 }
@@ -466,6 +494,7 @@ func HandleGetExpression(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 	expr, exists := expressions[id]
+	fmt.Println("expr", expressions)
 	if !exists {
 		http.Error(w, "Expression not found", http.StatusNotFound)
 		return
@@ -521,16 +550,25 @@ func HandlePostTaskResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// fmt.Println("eshkereeeee", thisnode.Valuse, fmt.Sprintf("%f", result), task.Index)
-	newSlice := append(thisnode.Valuse[:task.Index], fmt.Sprintf("%f", result))
-	// fmt.Println("gpggoggoggooggogoo", newSlice, thisnode, len(thisnode.Valuse[task.Index+2:]))
-	if task.Index+2 < len(thisnode.Valuse) {
-		newSlice = append(newSlice, thisnode.Valuse[task.Index+2:]...)
-	}
-
+	var newSlice []string
+	// newSlice = append(thisnode.Valuse[:task.Index], fmt.Sprintf("%f", result))
+	fmt.Println("gpggoggoggooggogoo", newSlice, thisnode, task.Index, taskID)
+	// if task.Index+2 < len(thisnode.Valuse) {
+	// 	newSlice = append(newSlice, thisnode.Valuse[task.Index+2:]...)
+	// 	thisnode = Node{
+	// 		Valuse:    newSlice,
+	// 		Operators: append(thisnode.Operators[:task.Index], thisnode.Operators[task.Index+1:]...),
+	// 	}
+	// } else {
+	newSlice = append(thisnode.Valuse[:task.Index], fmt.Sprintf("%f", result))
 	thisnode = Node{
-		Valuse:    newSlice,
-		Operators: append(thisnode.Operators[:task.Index], thisnode.Operators[:task.Index+1]...),
+		Valuse:    append(thisnode.Valuse[:task.Index+1], thisnode.Valuse[task.Index+2:]...),
+		Operators: append(thisnode.Operators[:task.Index], thisnode.Operators[task.Index+1:]...),
 	}
+	fmt.Println("gpggoggoggooggogoo", newSlice, thisnode, task.Index, taskID)
+	// }
+
+	fmt.Println("feefwfeef", thisnode)
 	// fmt.Println("ghghgghg", newSlice, thisnode)
 	task.Status = "completed"
 	task.Result = result
@@ -545,7 +583,27 @@ func HandlePostTaskResult(w http.ResponseWriter, r *http.Request) {
 	// 	// Отправка сигнала о завершении
 	// 	done <- struct{}{}
 	// }()
+	// a := false
+	// fmt.Println("tafgdhhfgtrdhrthtfghtrthrhrtdthrfhthtsks", tasks)
+	// for _, n := range tasks {
+	// 	if n.Status == "completed" {
+	// 		a = true
+	// 	} else {
+	// 		a = false
+	// 		break
+	// 	}
+	// }
+	// fmt.Println("tafgdhhfgtrdhrthtfghtrthrhrtdthrfhthtsks", a)
+	// if a == true {
 	IsResult = true
+	// }
+	// for i, n := range tasks {
+	// 	if i >= taskID {
+	// 		n.Index -= 1
+	// 	}
+
+	// }
+	inx += 1
 }
 
 func checkTaskCompletion(taskID int) {

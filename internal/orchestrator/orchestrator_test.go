@@ -23,7 +23,7 @@ func TestHandleCalculate(t *testing.T) {
 
 	var resp map[string]string
 	json.Unmarshal(w.Body.Bytes(), &resp)
-
+	t.Errorf(resp["id"])
 	if resp["id"] == "" {
 		t.Errorf("Expected non-empty ID, got empty")
 	}
@@ -65,7 +65,7 @@ func TestHandleGetExpression(t *testing.T) {
 
 	exprID := resp["id"]
 
-	req, _ = http.NewRequest("GET", "/api/v1/expressions/"+exprID, nil)
+	req, _ = http.NewRequest("GET", "/api/v1/expression/"+exprID, nil)
 	w = httptest.NewRecorder()
 
 	HandleGetExpression(w, req)
@@ -96,7 +96,7 @@ func TestHandleGetTask(t *testing.T) {
 
 	HandleCalculate(w, req)
 
-	req, _ = http.NewRequest("GET", "/internal/task", nil)
+	req, _ = http.NewRequest("GET", "/task", nil)
 	w = httptest.NewRecorder()
 
 	HandleGetTask(w, req)
@@ -135,7 +135,7 @@ func TestHandlePostTaskResult(t *testing.T) {
 
 	exprID := resp["id"]
 
-	req, _ = http.NewRequest("GET", "/internal/task", nil)
+	req, _ = http.NewRequest("GET", "/task", nil)
 	w = httptest.NewRecorder()
 
 	HandleGetTask(w, req)
@@ -148,7 +148,7 @@ func TestHandlePostTaskResult(t *testing.T) {
 
 	// Отправляем результат умножения 3 * 4 = 12
 	resultReqBody := fmt.Sprintf(`{"id": %d, "result": 12}`, taskID)
-	resultReq, _ := http.NewRequest("POST", "/internal/task", bytes.NewBuffer([]byte(resultReqBody)))
+	resultReq, _ := http.NewRequest("POST", "/task/result", bytes.NewBuffer([]byte(resultReqBody)))
 	resultW := httptest.NewRecorder()
 
 	HandlePostTaskResult(resultW, resultReq)
@@ -158,7 +158,7 @@ func TestHandlePostTaskResult(t *testing.T) {
 	}
 
 	// Получаем следующую задачу (2 + 12)
-	req, _ = http.NewRequest("GET", "/internal/task", nil)
+	req, _ = http.NewRequest("GET", "/task/result", nil)
 	w = httptest.NewRecorder()
 
 	HandleGetTask(w, req)
@@ -169,7 +169,7 @@ func TestHandlePostTaskResult(t *testing.T) {
 
 	// Отправляем результат сложения 2 + 12 = 14
 	resultReqBody = fmt.Sprintf(`{"id": %d, "result": 14}`, taskID)
-	resultReq, _ = http.NewRequest("POST", "/internal/task", bytes.NewBuffer([]byte(resultReqBody)))
+	resultReq, _ = http.NewRequest("POST", "/task", bytes.NewBuffer([]byte(resultReqBody)))
 	resultW = httptest.NewRecorder()
 
 	HandlePostTaskResult(resultW, resultReq)
@@ -180,7 +180,7 @@ func TestHandlePostTaskResult(t *testing.T) {
 
 	time.Sleep(2 * time.Second) // Ожидание завершения всех задач
 
-	req, _ = http.NewRequest("GET", "/api/v1/expressions/"+exprID, nil)
+	req, _ = http.NewRequest("GET", "/api/v1/expression/"+exprID, nil)
 	w = httptest.NewRecorder()
 
 	HandleGetExpression(w, req)
