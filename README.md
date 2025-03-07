@@ -13,7 +13,6 @@
 ### Добавление проекта
 ```
 git clone https://github.com/IDK536/go-calc2.git
-cd go-calc2
 ```
 
 ##Запуск проекта:
@@ -21,6 +20,7 @@ cd go-calc2
 
 ```
 go run ./cmd/server/main.go
+cd go-calc2
 ```
 
 ## Эндпоинты
