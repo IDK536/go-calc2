@@ -11,7 +11,7 @@ import (
 )
 
 func TestHandleCalculate(t *testing.T) {
-	reqBody := `{"expression": "2 + (3 * 4)"}` // Пример с скобками
+	reqBody := `{"expression": "2 + (3 * 4)"}`
 	req, _ := http.NewRequest("POST", "/api/v1/calculate", bytes.NewBuffer([]byte(reqBody)))
 	w := httptest.NewRecorder()
 
@@ -30,7 +30,7 @@ func TestHandleCalculate(t *testing.T) {
 }
 
 func TestHandleGetExpressions(t *testing.T) {
-	reqBody := `{"expression": "2 + (3 * 4)"}` // Пример с скобками
+	reqBody := `{"expression": "2 + (3 * 4)"}`
 	req, _ := http.NewRequest("POST", "/api/v1/calculate", bytes.NewBuffer([]byte(reqBody)))
 	w := httptest.NewRecorder()
 
@@ -54,7 +54,7 @@ func TestHandleGetExpressions(t *testing.T) {
 }
 
 func TestHandleGetExpression(t *testing.T) {
-	reqBody := `{"expression": "2 + (3 * 4)"}` // Пример с скобками
+	reqBody := `{"expression": "2 + (3 * 4)"}`
 	req, _ := http.NewRequest("POST", "/api/v1/calculate", bytes.NewBuffer([]byte(reqBody)))
 	w := httptest.NewRecorder()
 
@@ -90,7 +90,7 @@ func TestHandleGetExpression(t *testing.T) {
 }
 
 func TestHandleGetTask(t *testing.T) {
-	reqBody := `{"expression": "2 + (3 * 4)"}` // Пример с скобками
+	reqBody := `{"expression": "2 + (3 * 4)"}`
 	req, _ := http.NewRequest("POST", "/api/v1/calculate", bytes.NewBuffer([]byte(reqBody)))
 	w := httptest.NewRecorder()
 
@@ -124,7 +124,7 @@ func TestHandleGetTask(t *testing.T) {
 }
 
 func TestHandlePostTaskResult(t *testing.T) {
-	reqBody := `{"expression": "2 + (3 * 4)"}` // Пример с скобками
+	reqBody := `{"expression": "2 + (3 * 4)"}`
 	req, _ := http.NewRequest("POST", "/api/v1/calculate", bytes.NewBuffer([]byte(reqBody)))
 	w := httptest.NewRecorder()
 
@@ -146,7 +146,6 @@ func TestHandlePostTaskResult(t *testing.T) {
 	task := taskResp["task"]
 	taskID := task.ID
 
-	// Отправляем результат умножения 3 * 4 = 12
 	resultReqBody := fmt.Sprintf(`{"id": %d, "result": 12}`, taskID)
 	resultReq, _ := http.NewRequest("POST", "/task/result", bytes.NewBuffer([]byte(resultReqBody)))
 	resultW := httptest.NewRecorder()
@@ -157,7 +156,6 @@ func TestHandlePostTaskResult(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", resultW.Code)
 	}
 
-	// Получаем следующую задачу (2 + 12)
 	req, _ = http.NewRequest("GET", "/task/result", nil)
 	w = httptest.NewRecorder()
 
@@ -167,7 +165,6 @@ func TestHandlePostTaskResult(t *testing.T) {
 	task = taskResp["task"]
 	taskID = task.ID
 
-	// Отправляем результат сложения 2 + 12 = 14
 	resultReqBody = fmt.Sprintf(`{"id": %d, "result": 14}`, taskID)
 	resultReq, _ = http.NewRequest("POST", "/task", bytes.NewBuffer([]byte(resultReqBody)))
 	resultW = httptest.NewRecorder()
@@ -178,7 +175,7 @@ func TestHandlePostTaskResult(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", resultW.Code)
 	}
 
-	time.Sleep(2 * time.Second) // Ожидание завершения всех задач
+	time.Sleep(2 * time.Second)
 
 	req, _ = http.NewRequest("GET", "/api/v1/expression/"+exprID, nil)
 	w = httptest.NewRecorder()

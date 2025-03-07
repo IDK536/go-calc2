@@ -3,9 +3,9 @@ package agent
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -20,32 +20,25 @@ type Task struct {
 	Dependencies []int
 }
 
-func AgentWorker(computingPower int) {
-	for i := 0; i < computingPower; i++ {
-		go func() {
-			for {
-				task := fetchTask()
-				fmt.Println("go run 1104", task)
-				if task == nil {
-					time.Sleep(1 * time.Second)
-					continue
-				}
-				result := simulateWork(task)
-				fmt.Println("go run 1103", result, task)
-				sendResult(task.ID, result)
-			}
-		}()
+func AgentWorker(wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		task := fetchTask()
+		if task == nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		result := simulateWork(task)
+		sendResult(task.ID, result)
 	}
 }
 
 func fetchTask() *Task {
 	resp, err := http.Get("http://localhost:8080/task")
-	// fmt.Println("go run 1101", "Failed to fetch task")
 	if err != nil {
 		log.Println("Failed to fetch task:", err)
 		return nil
 	}
-	// fmt.Println("go run 1100")
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
@@ -58,14 +51,12 @@ func fetchTask() *Task {
 		return nil
 	}
 
-	// Создаем копию задачи и возвращаем указатель на неё
 	taskCopy := taskResp["task"]
 	return &taskCopy
 }
 
 func simulateWork(task *Task) float64 {
 	time.Sleep(task.Duration)
-	// fmt.Println("go run 1111", task.Operation, task.Dependencies)
 	switch task.Operation {
 	case "+":
 		return task.Arg1 + task.Arg2

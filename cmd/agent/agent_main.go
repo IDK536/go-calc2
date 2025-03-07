@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/IDK536/go_calc2/internal/agent"
 )
@@ -13,13 +14,14 @@ func Run() {
 	if cp == "" {
 		cp = "1"
 	}
+
 	computingPower, err := strconv.Atoi(cp)
 	if err != nil {
 		log.Fatalf("Invalid COMPUTING_POWER value: %v", err)
 	}
-
-	agent.AgentWorker(computingPower)
-
-	// Чтобы агент не завершался
-	select {}
+	wg := &sync.WaitGroup{}
+	for i := 0; i < computingPower; i++ {
+		go agent.AgentWorker(wg)
+	}
+	wg.Wait()
 }

@@ -11,7 +11,6 @@ import (
 )
 
 func TestAgentWorker(t *testing.T) {
-	// Запуск мок-сервера
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet && r.URL.Path == "/internal/task" {
 			task := Task{
@@ -33,19 +32,16 @@ func TestAgentWorker(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Устанавливаем URL мок-сервера
 	os.Setenv("AGENT_TASK_URL", server.URL+"/internal/task")
 
-	// Запуск агента
-	var wg sync.WaitGroup
+	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		AgentWorker(1)
+		AgentWorker(wg)
 	}()
 
-	// Ожидание завершения агента
-	time.Sleep(5 * time.Second) // Даем время агенту выполнить задачи
+	time.Sleep(5 * time.Second)
 
 	wg.Wait()
 }
@@ -66,7 +62,6 @@ func TestSimulateWork(t *testing.T) {
 }
 
 func TestSendResult(t *testing.T) {
-	// Запуск мок-сервера
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost && r.URL.Path == "/internal/task" {
 			var resultData map[string]interface{}
@@ -79,7 +74,6 @@ func TestSendResult(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Устанавливаем URL мок-сервера
 	os.Setenv("AGENT_TASK_URL", server.URL+"/internal/task")
 
 	task := Task{
